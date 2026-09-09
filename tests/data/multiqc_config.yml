@@ -1,0 +1,17 @@
+disable_version_detection: true
+no_ai: true
+
+sample_pivot:
+  group: '^(?P<group>[^. ]+)\.'
+  levels:
+    - match: '\.subject$'
+    - match: '\.(?P<analyte>tissueA|tissueB)$'
+      label: '{analyte}'
+    - match: '\.(?P<analyte>tissueA|tissueB) \(filtered\)$'
+      label: '{analyte} (filtered)'
+    - match: '\.library\.'
+      table: Library statistics
+  label_order: [tissueA, tissueB, tissueB (filtered)]
+  tables:
+    Library statistics:
+      description: Per-library read QC.

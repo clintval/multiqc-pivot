@@ -1,0 +1,12 @@
+id: concordance
+plot_type: generalstats
+headers:
+  - concordance:
+      title: Concordance
+      description: Genotype concordance between the subject's samples
+      suffix: "%"
+      min: 0
+      max: 100
+data:
+  101.subject: {concordance: 100.0}
+  102.subject: {concordance: 99.7}

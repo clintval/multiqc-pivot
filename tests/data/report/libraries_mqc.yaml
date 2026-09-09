@@ -1,0 +1,22 @@
+id: libraries
+plot_type: generalstats
+headers:
+  - pct_duplication:
+      title: "% Duplication"
+      description: Duplicate read pairs
+      suffix: "%"
+      min: 0
+      max: 100
+  - reads:
+      title: M Reads
+      description: Read pairs after filtering (millions)
+      format: "{:,.1f}"
+data:
+  101.tissueA.library.L1: {pct_duplication: 45.2, reads: 59.7}
+  101.tissueA.library.L2: {pct_duplication: 5.0, reads: 9.0}
+  101.tissueB.library.L3: {pct_duplication: 57.4, reads: 35.8}
+  101.tissueB.library.L4: {pct_duplication: 4.3, reads: 12.8}
+  102.tissueA.library.L5: {pct_duplication: 66.0, reads: 55.1}
+  102.tissueA.library.L6: {pct_duplication: 27.1, reads: 14.1}
+  102.tissueB.library.L7: {pct_duplication: 60.1, reads: 40.0}
+  102.tissueB.library.L8: {pct_duplication: 24.5, reads: 17.4}
