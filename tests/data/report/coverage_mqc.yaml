@@ -1,0 +1,19 @@
+id: coverage
+plot_type: generalstats
+headers:
+  - median_coverage:
+      title: Median
+      description: Median coverage over the target
+      suffix: X
+      format: "{:,.0f}"
+  - pct_30x:
+      title: "≥ 30X"
+      description: Fraction of target bases covered at least 30 times
+      suffix: "%"
+      min: 0
+      max: 100
+data:
+  101.tissueA: {median_coverage: 743, pct_30x: 99.0}
+  101.tissueB: {median_coverage: 419, pct_30x: 98.0}
+  102.tissueA: {median_coverage: 769, pct_30x: 99.0}
+  102.tissueB: {median_coverage: 444, pct_30x: 98.0}

@@ -1,0 +1,16 @@
+id: alignment
+plot_type: generalstats
+headers:
+  - pct_aligned:
+      title: "% Aligned"
+      description: Fraction of reads aligned to the reference
+      suffix: "%"
+      min: 0
+      max: 100
+data:
+  101.tissueA: {pct_aligned: 42.4}
+  101.tissueB: {pct_aligned: 36.5}
+  "101.tissueB (filtered)": {pct_aligned: 35.4}
+  102.tissueA: {pct_aligned: 41.5}
+  102.tissueB: {pct_aligned: 37.9}
+  "102.tissueB (filtered)": {pct_aligned: 38.6}

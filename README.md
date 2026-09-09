@@ -1,3 +1,95 @@
 # multiqc-pivot
 
-A MultiQC plugin that folds related samples into one General Statistics row per group, with the metric columns labelled by what they came from.
+[![CI](https://github.com/clintval/multiqc-pivot/actions/workflows/tests.yml/badge.svg?branch=main)](https://github.com/clintval/multiqc-pivot/actions/workflows/tests.yml?query=branch%3Amain)
+[![Python Versions](https://img.shields.io/badge/python-3.10_|_3.11_|_3.12_|_3.13-blue)](https://github.com/clintval/multiqc-pivot)
+[![basedpyright](https://img.shields.io/badge/basedpyright-checked-42b983)](https://docs.basedpyright.com/latest/)
+[![mypy](https://www.mypy-lang.org/static/mypy_badge.svg)](https://mypy-lang.org/)
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://docs.astral.sh/ruff/)
+
+A [MultiQC](https://multiqc.info) plugin that folds related samples into one General Statistics row per group, with each metric column labelled by the sample it came from.
+
+MultiQC gives every sample its own row. When one subject yields several samples that are measured by different tools, say a tumour and a normal, or two tissues and a paired-genotype check, the General Statistics table ends up with a block of half-empty rows per subject. MultiQC's own [sample grouping](https://docs.seqera.io/multiqc/reports/customisation#sample-grouping) only fills the group's row for the handful of modules that know how to merge their metrics.
+
+This plugin runs after every module has reported and rebuilds the table:
+
+- rows for one group fold into a single row, and every folded column is renamed after where it came from, so `Median` becomes `Tumour Median` and `Normal Median`;
+- the original rows stay beneath the group row, so it still expands;
+- rows for a level that does not belong in the table, such as per-library read QC, move out into their own table under General Statistics with whatever grouping they already had;
+- hover text, colour scales, formats and hidden-by-default state carry over from the module that produced each column.
+
+![General Statistics with one row per subject and a Library statistics table beneath it](docs/pivot.png)
+
+The report above comes from the [test fixtures](tests/data/report) and the [configuration](tests/data/multiqc_config.yml) shown in the usage section.
+
+## Installation
+
+```console
+pip install multiqc-pivot
+```
+
+MultiQC discovers the plugin through its entry points; nothing else is needed. Until a release is on PyPI, install from GitHub:
+
+```console
+pip install git+https://github.com/clintval/multiqc-pivot
+```
+
+## Usage
+
+Add a `sample_pivot` block to any MultiQC config, for example with `--config my_config.yml`. With these sample names:
+
+```text
+101.subject
+101.tissueA
+101.tissueB
+101.tissueB (filtered)
+101.tissueA.library.L1
+101.tissueA.library.L2
+```
+
+this configuration produces one row named `101` carrying `Concordance`, `TissueA Median`, `TissueB Median`, `TissueB (filtered) % Aligned` and so on, and moves the library rows into a separate table:
+
+```yaml
+sample_pivot:
+  group: '^(?P<group>[^. ]+)\.'
+  levels:
+    - match: '\.subject$'
+    - match: '\.(?P<analyte>tissueA|tissueB)$'
+      label: '{analyte}'
+    - match: '\.(?P<analyte>tissueA|tissueB) \(filtered\)$'
+      label: '{analyte} (filtered)'
+    - match: '\.library\.'
+      table: Library statistics
+  label_order: [tissueA, tissueB, tissueB (filtered)]
+  tables:
+    Library statistics:
+      description: Per-library read QC; read pairs nest under their library.
+```
+
+### Reference
+
+| Key | Meaning |
+| --- | --- |
+| `group` | A regular expression searched in every matched sample name. Its `(?P<group>...)` capture names the folded row. Required. |
+| `levels` | An ordered list; the first level whose `match` is found in a sample name wins. Required. |
+| `levels[].match` | A regular expression searched in the sample name. Named captures are available to `label`. |
+| `levels[].label` | A format string built from the captures of `match`. Columns of matching rows are renamed with it and folded onto the group row; the row itself stays beneath. Omit it, and omit `table`, to fold the row's columns onto the group row unchanged. |
+| `levels[].table` | The name of a table that receives matching rows instead of General Statistics. Rows keep their grouping, so paired reads stay nested under their library. |
+| `column_title` | How a pivoted column is titled. `{label}` is the label as written, `{Label}` has its first letter upper-cased, `{title}` is the module's title. Default `{Label} {title}`. |
+| `label_order` | Labels in the order their column blocks should appear. Labels not listed follow in order of first appearance. |
+| `tables` | Presentation of the tables named by `levels[].table`, currently a `description` each. |
+
+A sample that matches no level is left exactly where it was. A sample that matches a level but not `group` is left alone as well, with a warning in the log. Columns that a module did not declare a header for are dropped from folded rows, as MultiQC would have dropped them anyway.
+
+### Where the columns land
+
+Pivoted columns are placed after every column that was not pivoted, grouped by label in `label_order`. Within a label they keep MultiQC's module order. In the exported `multiqc_general_stats.txt` a pivoted column is named `<original key>__<label slug>`, for example `coverage-median_coverage__tissuea`.
+
+### Limitations
+
+- Sample names are matched after MultiQC has cleaned them, so write patterns against the names you see in an unpivoted report.
+- Only one level of nesting exists in a MultiQC table. Rows moved into a secondary table keep the nesting they already had; rows folded into a group row become its children, and cannot nest further.
+- Two rows in the same group that resolve to the same label collide. The first value is kept and a warning is logged, so make labels specific enough to tell such rows apart.
+
+## Development and Testing
+
+See the [contributing guide](./CONTRIBUTING.md) for more information.
