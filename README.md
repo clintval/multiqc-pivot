@@ -8,18 +8,40 @@
 
 A [MultiQC](https://multiqc.info) plugin that folds related samples into one General Statistics row per group, with each metric column labelled by the sample it came from.
 
-MultiQC gives every sample its own row. When one subject yields several samples that are measured by different tools, say a tumour and a normal, or two tissues and a paired-genotype check, the General Statistics table ends up with a block of half-empty rows per subject. MultiQC's own [sample grouping](https://docs.seqera.io/multiqc/reports/customisation#sample-grouping) only fills the group's row for the handful of modules that know how to merge their metrics.
+MultiQC gives every sample its own row.
+When one subject yields several samples that are measured by different methods, say a tumour and a normal, or two tissues and a paired-genotype check, the General Statistics table ends up with a block of half-empty rows per subject.
+MultiQC's own [sample grouping](https://docs.seqera.io/multiqc/reports/customisation#sample-grouping) only fills the group's row for the handful of modules that know how to merge their metrics.
 
 This plugin runs after every module has reported and rebuilds the table:
 
-- rows for one group fold into a single row, and every folded column is renamed after where it came from, so `Median` becomes `Tumour Median` and `Normal Median`;
-- the original rows stay beneath the group row, so it still expands;
-- rows for a level that does not belong in the table, such as per-library read QC, move out into their own table under General Statistics with whatever grouping they already had;
-- hover text, colour scales, formats and hidden-by-default state carry over from the module that produced each column.
+1. Rows for one group fold into a single row, and every folded column is renamed after where it came from, so `Median` becomes `Tumour Median` and `Normal Median`
+2. The original rows stay beneath the group row, so it still expands
+3. Rows for a level that does not belong in the table, such as per-library read QC, move out into their own table under General Statistics with whatever grouping they already had
+4. Hover text, color scales, formats and hidden-by-default state carry over from the module that produced each column
 
 ![General Statistics with one row per subject and a Library statistics table beneath it](docs/pivot.png)
 
-The report above comes from the [test fixtures](tests/data/report) and the [configuration](tests/data/multiqc_config.yml) shown in the usage section.
+The report above comes from the [test fixtures](tests/data/report) and the [configuration](tests/data/multiqc_config.yml) shown in the usage section:
+
+```yaml
+disable_version_detection: true
+no_ai: true
+
+sample_pivot:
+  group: '^(?P<group>[^. ]+)\.'
+  levels:
+    - match: '\.subject$'
+    - match: '\.(?P<analyte>tissueA|tissueB)$'
+      label: '{analyte}'
+    - match: '\.(?P<analyte>tissueA|tissueB) \(filtered\)$'
+      label: '{analyte} (filtered)'
+    - match: '\.library\.'
+      table: Library statistics
+  label_order: [tissueA, tissueB, tissueB (filtered)]
+  tables:
+    Library statistics:
+      description: Per-library read QC.
+```
 
 ## Installation
 
@@ -27,26 +49,22 @@ The report above comes from the [test fixtures](tests/data/report) and the [conf
 pip install multiqc-pivot
 ```
 
-MultiQC discovers the plugin through its entry points; nothing else is needed. Until a release is on PyPI, install from GitHub:
-
-```console
-pip install git+https://github.com/clintval/multiqc-pivot
-```
-
 ## Usage
 
-Add a `sample_pivot` block to any MultiQC config, for example with `--config my_config.yml`. With these sample names:
+Add a `sample_pivot` block to any MultiQC config, for example with `--config my_config.yml`.
+
+With these sample names:
 
 ```text
 101.subject
 101.tissueA
 101.tissueB
-101.tissueB (filtered)
+101.tissueB (filtered data, though)
 101.tissueA.library.L1
 101.tissueA.library.L2
 ```
 
-this configuration produces one row named `101` carrying `Concordance`, `TissueA Median`, `TissueB Median`, `TissueB (filtered) % Aligned` and so on, and moves the library rows into a separate table:
+This configuration produces one row named `101` carrying `Concordance`, `TissueA Median`, `TissueB Median`, `TissueB (filtered) % Aligned` and so on, and moves the library rows into a separate table:
 
 ```yaml
 sample_pivot:
@@ -78,17 +96,25 @@ sample_pivot:
 | `label_order` | Labels in the order their column blocks should appear. Labels not listed follow in order of first appearance. |
 | `tables` | Presentation of the tables named by `levels[].table`, currently a `description` each. |
 
-A sample that matches no level is left exactly where it was. A sample that matches a level but not `group` is left alone as well, with a warning in the log. Columns that a module did not declare a header for are dropped from folded rows, as MultiQC would have dropped them anyway.
+A sample that matches no level is left where it was. 
+
+A sample that matches a level but not `group` is left alone as well, with a warning in the log.
+
+Columns that a module did not declare a header for are dropped from folded rows, as MultiQC would have dropped them anyway.
 
 ### Where the columns land
 
-Pivoted columns are placed after every column that was not pivoted, grouped by label in `label_order`. Within a label they keep MultiQC's module order. In the exported `multiqc_general_stats.txt` a pivoted column is named `<original key>__<label slug>`, for example `coverage-median_coverage__tissuea`.
+Pivoted columns are placed after every column that was not pivoted, grouped by label in `label_order`.
+
+Within a label they keep MultiQC's module order.
+
+In the exported `multiqc_general_stats.txt` a pivoted column is named `<original key>__<label slug>`, for example `coverage-median_coverage__tissuea`.
 
 ### Limitations
 
-- Sample names are matched after MultiQC has cleaned them, so write patterns against the names you see in an unpivoted report.
-- Only one level of nesting exists in a MultiQC table. Rows moved into a secondary table keep the nesting they already had; rows folded into a group row become its children, and cannot nest further.
-- Two rows in the same group that resolve to the same label collide. The first value is kept and a warning is logged, so make labels specific enough to tell such rows apart.
+1. Sample names are matched after MultiQC has cleaned them, so you must write patterns against the names you see in an un-pivoted report.
+2. Only one level of nesting exists in a MultiQC table. Rows moved into a secondary table keep the nesting they already had; rows folded into a group row become its children, and cannot nest further.
+3. Two rows in the same group that resolve to the same label collide. The first value is kept and a warning is logged, so make labels specific enough to tell such rows apart.
 
 ## Development and Testing
 
