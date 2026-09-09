@@ -97,17 +97,13 @@ sample_pivot:
 | `tables` | Presentation of the tables named by `levels[].table`, currently a `description` each. |
 
 A sample that matches no level is left where it was. 
-
 A sample that matches a level but not `group` is left alone as well, with a warning in the log.
-
 Columns that a module did not declare a header for are dropped from folded rows, as MultiQC would have dropped them anyway.
 
 ### Where the columns land
 
 Pivoted columns are placed after every column that was not pivoted, grouped by label in `label_order`.
-
 Within a label they keep MultiQC's module order.
-
 In the exported `multiqc_general_stats.txt` a pivoted column is named `<original key>__<label slug>`, for example `coverage-median_coverage__tissuea`.
 
 ### Limitations
