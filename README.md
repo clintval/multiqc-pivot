@@ -6,7 +6,7 @@
 [![mypy](https://www.mypy-lang.org/static/mypy_badge.svg)](https://mypy-lang.org/)
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://docs.astral.sh/ruff/)
 
-A [MultiQC](https://multiqc.info) plugin that folds related samples into one General Statistics row per group, with each metric column labelled by the sample it came from.
+A [MultiQC](https://multiqc.info) plugin that folds related samples into one General Statistics row per group.
 
 ## Installation
 
@@ -21,19 +21,18 @@ MultiQC's own [sample grouping](https://docs.seqera.io/multiqc/reports/customisa
 
 This plugin runs after every module has reported and rebuilds the table:
 
-1. Rows for one group fold into a single row, and every folded column is renamed after where it came from, so `Median` becomes `Tumour Median` and `Normal Median`
-2. The original rows stay beneath the group row, so it still expands
-3. Rows for a level that does not belong in the table, such as per-library read QC, move out into their own table under General Statistics with whatever grouping they already had
-4. Hover text, color scales, formats and hidden-by-default state carry over from the module that produced each column
+1. Rows for one group fold into a single row, and every folded column is prefixed by which method it came from.
+2. The original rows stay beneath the group row, so they still can be viewed.
+3. Rows for a level that does not belong in the table, such as per-library read QC, move out into their own table under General Statistics with whatever grouping they already had.
+4. Hover text, color scales, formats and hidden-by-default state carry over from the module that produced each column.
+
+## Example
+
+The report below comes from the [test fixtures](tests/data/report) and the [configuration](tests/data/multiqc_config.yml) shown in the usage section:
 
 ![General Statistics with one row per subject and a Library statistics table beneath it](docs/pivot.png)
 
-The report above comes from the [test fixtures](tests/data/report) and the [configuration](tests/data/multiqc_config.yml) shown in the usage section:
-
 ```yaml
-disable_version_detection: true
-no_ai: true
-
 sample_pivot:
   group: '^(?P<group>[^. ]+)\.'
   levels:
@@ -54,7 +53,7 @@ sample_pivot:
 
 Add a `sample_pivot` block to any MultiQC config, for example with `--config my_config.yml`.
 
-With these sample names:
+So, with these sample names:
 
 ```text
 101.subject
