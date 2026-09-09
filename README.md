@@ -26,29 +26,6 @@ This plugin runs after every module has reported and rebuilds the table:
 3. Rows for a level that does not belong in the table, such as per-library read QC, move out into their own table under General Statistics with whatever grouping they already had.
 4. Hover text, color scales, formats and hidden-by-default state carry over from the module that produced each column.
 
-## Example
-
-The report below comes from the [test fixtures](tests/data/report) and the [configuration](tests/data/multiqc_config.yml) shown in the usage section:
-
-![General Statistics with one row per subject and a Library statistics table beneath it](docs/pivot.png)
-
-```yaml
-sample_pivot:
-  group: '^(?P<group>[^. ]+)\.'
-  levels:
-    - match: '\.subject$'
-    - match: '\.(?P<analyte>tissueA|tissueB)$'
-      label: '{analyte}'
-    - match: '\.(?P<analyte>tissueA|tissueB) \(filtered\)$'
-      label: '{analyte} (filtered)'
-    - match: '\.library\.'
-      table: Library statistics
-  label_order: [tissueA, tissueB, tissueB (filtered)]
-  tables:
-    Library statistics:
-      description: Per-library read QC.
-```
-
 ## Usage
 
 Add a `sample_pivot` block to any MultiQC config, for example with `--config my_config.yml`.
@@ -82,6 +59,10 @@ sample_pivot:
     Library statistics:
       description: Per-library read QC; read pairs nest under their library.
 ```
+
+And your report will look like:
+
+![General Statistics with one row per subject and a Library statistics table beneath it](docs/pivot.png)
 
 ### YAML Configuration Reference
 
