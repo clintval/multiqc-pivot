@@ -8,6 +8,13 @@
 
 A [MultiQC](https://multiqc.info) plugin that folds related samples into one General Statistics row per group, with each metric column labelled by the sample it came from.
 
+## Installation
+
+```console
+pip install multiqc-pivot
+```
+## Introduction
+
 MultiQC gives every sample its own row.
 When one subject yields several samples that are measured by different methods, say a tumour and a normal, or two tissues and a paired-genotype check, the General Statistics table ends up with a block of half-empty rows per subject.
 MultiQC's own [sample grouping](https://docs.seqera.io/multiqc/reports/customisation#sample-grouping) only fills the group's row for the handful of modules that know how to merge their metrics.
@@ -41,12 +48,6 @@ sample_pivot:
   tables:
     Library statistics:
       description: Per-library read QC.
-```
-
-## Installation
-
-```console
-pip install multiqc-pivot
 ```
 
 ## Usage
@@ -83,7 +84,7 @@ sample_pivot:
       description: Per-library read QC; read pairs nest under their library.
 ```
 
-### Reference
+### YAML Configuration Reference
 
 | Key | Meaning |
 | --- | --- |
