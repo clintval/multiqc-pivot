@@ -211,13 +211,14 @@ def pivot(rows: Rows, headers: Headers, settings: SamplePivotConfig) -> PivotRes
     Rows that match a labelled level have their declared columns renamed after the label and copied
     onto the group's row; the original rows stay beneath it so the group can still be expanded.
     Rows that match an unlabelled level are folded onto the group's row as they are. Rows that match
-    a level with a table are moved into that table with their grouping intact. Rows that match no
+    a level with a table are moved into that table with their grouping intact; the tables come back
+    in the order their levels are listed, without the ones that received no rows. Rows that match no
     level, and columns a module did not declare a header for, are left alone.
     """
     placement = Placement(settings.label_order)
     out_rows: Rows = {}
     out_headers: Headers = {}
-    tables: dict[str, Table] = {}
+    tables = {level.table: Table() for level in settings.levels if level.table is not None}
     for section, rows_by_group in rows.items():
         section_headers = headers.get(section, {})
         pivoted = SectionPivot(section_headers, settings, placement)
@@ -227,15 +228,14 @@ def pivot(rows: Rows, headers: Headers, settings: SamplePivotConfig) -> PivotRes
                 if route is None:
                     pivoted.keep(group, row)
                 elif isinstance(route, Moved):
-                    table = tables.setdefault(route.table, Table())
-                    table.add(section, group, row, section_headers)
+                    tables[route.table].add(section, group, row, section_headers)
                 elif route.label is None:
                     pivoted.fold(route.group, row)
                 else:
                     pivoted.fold_labelled(route.group, route.label, row)
         out_rows[section] = pivoted.finish()
         out_headers[section] = pivoted.new_headers
-    return PivotResult(out_rows, out_headers, tables)
+    return PivotResult(out_rows, out_headers, {n: t for n, t in tables.items() if t.rows})
 
 
 def _fold(target: RowData, key: ColumnKeyT, value: ExtValueT | None, group: str) -> None:
