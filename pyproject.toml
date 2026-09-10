@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "multiqc-pivot"
-version = "0.1.0"
+version = "0.1.1"
 description = "A MultiQC plugin that folds related samples into one General Statistics row per group with labelled metric columns."
 readme = "README.md"
 authors = [{ name = "Clint Valentine", email = "valentine.clint@gmail.com" }]
