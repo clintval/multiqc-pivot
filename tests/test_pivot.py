@@ -158,6 +158,34 @@ def test_table_levels_move_rows_with_their_grouping() -> None:
     assert table.headers == headers
 
 
+def test_tables_follow_level_order_not_module_order() -> None:
+    settings = SETTINGS.model_copy(
+        update={
+            "levels": [
+                Level(match=r"\.library\.", table="Library statistics"),
+                Level(match=r"^cohort\.", table="Cohort annotation"),
+                Level(match=r"\.nothing\.", table="Never filled"),
+            ]
+        }
+    )
+    snpeff, fastqc = SectionKey("snpeff"), SectionKey("fastqc")
+    rows = {
+        snpeff: section(row("cohort.somatic", variants=1234)),
+        fastqc: section(row("101.tissueA.library.L1", dups=70.0)),
+    }
+    headers = {
+        snpeff: {ColumnKey("variants"): header("Variants")},
+        fastqc: {ColumnKey("dups"): header("Dups")},
+    }
+
+    result = pivot(rows, headers, settings)
+
+    assert list(result.tables) == ["Library statistics", "Cohort annotation"]
+    assert result.tables["Cohort annotation"].rows == {
+        snpeff: section(row("cohort.somatic", variants=1234))
+    }
+
+
 def test_unmatched_rows_are_untouched() -> None:
     other = SectionKey("other")
     rows = {other: section(row("control", median=1))}

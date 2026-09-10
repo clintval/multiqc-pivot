@@ -72,7 +72,7 @@ And your report will look like:
 | `levels` | An ordered list; the first level whose `match` is found in a sample name wins. Required. |
 | `levels[].match` | A regular expression searched in the sample name. Named captures are available to `label`. |
 | `levels[].label` | A format string built from the captures of `match`. Columns of matching rows are renamed with it and folded onto the group row; the row itself stays beneath. Omit it, and omit `table`, to fold the row's columns onto the group row unchanged. |
-| `levels[].table` | The name of a table that receives matching rows instead of General Statistics. Rows keep their grouping, so paired reads stay nested under their library. |
+| `levels[].table` | The name of a table that receives matching rows instead of General Statistics. Rows keep their grouping, so paired reads stay nested under their library. Tables sit directly under General Statistics in the order their levels are listed. |
 | `column_title` | How a pivoted column is titled. `{label}` is the label as written, `{Label}` has its first letter upper-cased, `{title}` is the module's title. Default `{Label} {title}`. |
 | `label_order` | Labels in the order their column blocks should appear. Labels not listed follow in order of first appearance. |
 | `tables` | Presentation of the tables named by `levels[].table`, currently a `description` each. |
